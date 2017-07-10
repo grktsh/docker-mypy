@@ -13,3 +13,6 @@ RUN set -ex \
     python3-dev \
  && python3 -m pip install --no-cache-dir mypy==$MYPY_VERSION \
  && apk del .build-deps
+
+COPY docker-entrypoint.sh /usr/local/bin/
+ENTRYPOINT ["docker-entrypoint.sh"]
