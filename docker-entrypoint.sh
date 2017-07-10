@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-if [ "$1" != "mypy" -a "$1" != "stubgen" ]; then
+if [ "${1:0:1}" = "-" ]; then
     set -- mypy "$@"
 fi
 
