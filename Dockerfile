@@ -4,7 +4,7 @@ ENV PYTHONUNBUFFERED 1
 
 RUN apk add --no-cache python3
 
-ENV MYPY_VERSION 0.641
+ENV MYPY_VERSION 0.650
 
 RUN set -ex \
  && apk add --no-cache --virtual .build-deps \
