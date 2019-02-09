@@ -1,10 +1,11 @@
+# alpine:3.8 + python3 is smaller than python:3.6-alpine3.8
 FROM alpine:3.8
 
 ENV PYTHONUNBUFFERED 1
 
 RUN apk add --no-cache python3
 
-ENV MYPY_VERSION 0.650
+ENV MYPY_VERSION 0.660
 
 RUN set -ex \
  && apk add --no-cache --virtual .build-deps \
