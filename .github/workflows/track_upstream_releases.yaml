@@ -1,0 +1,51 @@
+name: Track upstream releases
+
+'on':
+  schedule:
+    - cron:  '55 * * * *'
+
+
+jobs:
+  push_to_registry:
+    name: Push Docker image to GitHub Packages
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9]
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Find latest version
+        id: meta
+        run: |
+          MYPY_VERSION="$(curl -s https://api.github.com/repos/python/mypy/tags | jq -r '.[0].name')"
+          MYPY_VERSION="${MYPY_VERSION:1}" # remove v. from name
+          if [ "${MYPY_VERSION}" = "" ]; then
+              echo "Could not get latest tag from https://api.github.com/repos/python/mypy/tags"
+              exit 1
+          fi
+          echo "Found latest mypy release ${MYPY_VERSION}"
+          echo "::set-output name=mypy-version::${MYPY_VERSION}"
+          echo "::set-output name=tag::py${{ matrix.python-version }}-${MYPY_VERSION}"
+      - name: Log in to GitHub Docker Registry
+        uses: docker/login-action@v1
+        with:
+          registry: docker.pkg.github.com
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check if build exists
+        run: docker pull docker.pkg.github.com/healthbyro/docker-mypy/docker-mypy:${{ steps.meta.outputs.tag }}
+      - name: Build container image
+        # build image if pulling given tag failed
+        if: failure()
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: |
+            docker.pkg.github.com/healthbyro/docker-mypy/docker-mypy:${{ steps.meta.outputs.tag }}
+          build-args: |
+            BASE_IMAGE=alpine:${{ matrix.python-version }}
+            MYPY_VERSION=${{ steps.meta.outputs.mypy-version }}
